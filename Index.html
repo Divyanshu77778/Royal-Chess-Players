@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Royal Chess</title>
+  <style>
+    body {
+      background: #171717;
+      color: #e5c46a;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 30px 15px;
+    }
+    h1 {
+      font-size: 36px;
+      margin-top: 60px;
+    }
+    p {
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <h1>♛ Royal Chess ♛</h1>
+  <p>Welcome to the Royal Chess Game!</p>
+</body>
+</html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Royal Chess</title>
+
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#171717">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+
+body{
+ margin:0;background:#101010;color:white;
+ font-family:Arial,sans-serif;text-align:center;
+}
+
+header{
+ padding:23px 10px;
+ background:linear-gradient(135deg,#171717,#333);
+ border-bottom:2px solid #d4af37;
+}
+
+h1{margin:0;color:#e8c65a;letter-spacing:3px}
+header p{color:#aaa;font-size:11px;letter-spacing:3px}
+
+.page{display:none;padding:15px 10px}
+.page.active{display:block}
+
+.panel{
+ max-width:430px;margin:20px auto;padding:20px;
+ background:#202020;border:1px solid #b38b2d;
+ border-radius:15px;
+}
+
+h2,h3{color:#e8c65a}
+
+button{
+ padding:12px 16px;margin:5px;
+ border:1px solid #e5c45d;border-radius:9px;
+ background:linear-gradient(135deg,#f1d77d,#a77c19);
+ color:#171717;font-weight:bold;font-size:13px;
+ cursor:pointer;
+}
+
+button.selected{background:#fff;color:#8b6817}
+button:active{transform:scale(.96)}
+
+.options{
+ display:flex;justify-content:center;flex-wrap:wrap;
+ gap:5px;
+}
+
+#difficultyBox{display:none}
+
+#status{
+ color:#e8c65a;font-weight:bold;
+ margin:12px;min-height:22px;
+}
+
+#board{
+ width:min(94vw,480px);
+ aspect-ratio:1;
+ margin:12px auto;
+ position:relative;
+ display:grid;
+ grid-template-columns:repeat(8,minmax(0,1fr));
+ grid-template-rows:repeat(8,minmax(0,1fr));
+ border:4px solid #c49b36;
+ box-shadow:0 0 22px #c49b3655;
+ overflow:hidden;
+ touch-action:manipulation;
+}
+
+.square{
+ min-width:0;min-height:0;
+ position:relative;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ font-size:clamp(25px,9vw,49px);
+ line-height:1;
+ cursor:pointer;
+ user-select:none;
+}
+
+.gold{background:#e5cd91}
+.silver{background:#737b84}
+.selected-square{background:#f6e35b!important}
+
+.piece{
+ display:block;
+ pointer-events:none;
+ z-index:1;
+}
+
+.white-piece{
+ color:white;
+ text-shadow:1px 2px 3px #222;
+}
+
+.black-piece{
+ color:#171717;
+ text-shadow:0 1px 2px white;
+}
+
+.possible:after{
+ content:"";
+ position:absolute;
+ width:24%;height:24%;
+ border-radius:50%;
+ background:#167b3b;
+ opacity:.85;
+}
+
+.possible.capture:after{
+ width:85%;height:85%;
+ background:transparent;
+ border:4px solid #167b3b;
+}
+
+.animating .piece{visibility:hidden}
+
+.slide-piece{
+ position:absolute;
+ z-index:10;
+ pointer-events:none;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ font-size:clamp(25px,9vw,49px);
+ width:12.5%;height:12.5%;
+ transition:transform .28s ease-in-out;
+}
+
+.controls{
+ display:flex;justify-content:center;flex-wrap:wrap;
+ margin:12px auto;
+}
+
+#history{
+ max-width:400px;margin:12px auto;
+ padding:12px;background:#202020;
+ border:1px solid #8c702e;border-radius:8px;
+ color:#ddd;text-align:left;
+ min-height:40px;font-size:13px;
+}
+
+footer{color:#777;font-size:11px;padding:20px}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>♛ ROYAL CHESS ♛</h1>
+<p>THE KINGDOM OF STRATEGY</p>
+</header>
+
+<!-- PAGE 1 HOME -->
+
+<section id="home" class="page active">
+
+<div class="panel">
+
+<h2>Welcome to Royal Chess</h2>
+<p>Choose your game mode</p>
+
+<div class="options">
+<button onclick="chooseMode('pvp',this)">Player vs Player</button>
+<button onclick="chooseMode('computer',this)">Player vs Computer</button>
+</div>
+
+<h3>Choose Your Colour</h3>
+
+<div class="options">
+<button id="whiteBtn" class="selected"
+onclick="chooseColor('w')">♔ White</button>
+
+<button id="blackBtn"
+onclick="chooseColor('b')">♚ Black</button>
+</div>
+
+<div id="difficultyBox">
+<h3>Robot Difficulty</h3>
+
+<div class="options">
+<button onclick="setDifficulty(1,this)" class="selected">Easy</button>
+<button onclick="setDifficulty(2,this)">Medium</button>
+<button onclick="setDifficulty(3,this)">Hard</button>
+</div>
+</div>
+
+<br>
+
+<button style="width:85%" onclick="startGame()">
+START GAME ♛
+</button>
+
+</div>
+</section>
+
+<!-- PAGE 2 CHESS GAME -->
+
+<section id="gamePage" class="page">
+
+<div id="status">White to move</div>
+
+<div id="board"></div>
+
+<div class="controls">
+<button onclick="undoMove()">↶ Undo</button>
+<button onclick="restartGame()">⟳ Restart</button>
+<button onclick="flipBoard()">⇅ Flip</button>
+<button onclick="backHome()">⌂ Home</button>
+</div>
+
+<div id="history">Move history will appear here.</div>
+
+</section>
+
+<footer>ROYAL CHESS © 2026</footer>
+
+<script>
+
+if(typeof Chess==="undefined"){
+ alert("Chess library could not load. Please check your internet.");
+ throw new Error("Chess library unavailable");
+}
+
+const game=new Chess();
+
+const symbols={
+ wk:"♔",wq:"♕",wr:"♖",wb:"♗",wn:"♘",wp:"♙",
+ bk:"♚",bq:"♛",br:"♜",bb:"♝",bn:"♞",bp:"♟"
+};
+
+let mode="pvp";
+let playerColor="w";
+let difficulty=1;
+let selected=null;
+let legalMoves=[];
+let flipped=false;
+let lastMove=null;
+let busy=false;
+
+const pieceValue={
+ p:100,n:320,b:330,r:500,q:900,k:20000
+};
+
+function chooseMode(m,btn){
+ mode=m;
+
+ document.querySelectorAll(".options button").forEach(b=>{
+  if(b.textContent.includes("Player vs"))
+   b.classList.remove("selected");
+ });
+
+ btn.classList.add("selected");
+
+ document.getElementById("difficultyBox").style.display=
+ mode==="computer"?"block":"none";
+}
+
+function chooseColor(c){
+ playerColor=c;
+
+ document.getElementById("whiteBtn")
+ .classList.toggle("selected",c==="w");
+
+ document.getElementById("blackBtn")
+ .classList.toggle("selected",c==="b");
+}
+
+function setDifficulty(level,btn){
+ difficulty=level;
+
+ document.querySelectorAll("#difficultyBox button")
+ .forEach(b=>b.classList.remove("selected"));
+
+ btn.classList.add("selected");
+}
+
+function showPage(id){
+ document.querySelectorAll(".page")
+ .forEach(p=>p.classList.remove("active"));
+
+ document.getElementById(id).classList.add("active");
+}
+
+function startGame(){
+ game.reset();
+ flipped=playerColor==="b";
+ selected=null;
+ legalMoves=[];
+ lastMove=null;
+ busy=false;
+
+ showPage("gamePage");
+ renderBoard();
+ updateStatus();
+
+ if(mode==="computer" && playerColor==="b"){
+  setTimeout(computerMove,400);
+ }
+}
+
+function backHome(){
+ showPage("home");
+}
+
+function restartGame(){
+ game.reset();
+ selected=null;
+ legalMoves=[];
+ lastMove=null;
+ busy=false;
+
+ renderBoard();
+ updateStatus();
+
+ if(mode==="computer" && playerColor==="b"){
+  setTimeout(computerMove,400);
+ }
+}
+
+function undoMove(){
+ if(busy || !game.history().length)return;
+
+ game.undo();
+
+ if(mode==="computer" && game.turn()!==playerColor &&
+ game.history().length){
+  game.undo();
+ }
+
+ selected=null;
+ legalMoves=[];
+ lastMove=null;
+
+ renderBoard();
+ updateStatus();
+}
+
+function flipBoard(){
+ flipped=!flipped;
+ renderBoard();
+}
+
+function squarePosition(square){
+ let file=square.charCodeAt(0)-97;
+ let rank=8-Number(square[1]);
+
+ if(flipped){
+  file=7-file;
+  rank=7-rank;
+ }
+
+ return {x:file,y:rank};
+}
+
+function renderBoard(){
+ const board=document.getElementById("board");
+ const fragment=document.createDocumentFragment();
+
+ board.innerHTML="";
+
+ for(let n=0;n<64;n++){
+  let row=Math.floor(n/8);
+  let col=n%8;
+
+  if(flipped){
+   row=7-row;
+   col=7-col;
+  }
+
+  const square=String.fromCharCode(97+col)+(8-row);
+  const piece=game.get(square);
+  const div=document.createElement("div");
+
+  div.className="square "+
+   ((row+col)%2===0?"gold":"silver");
+
+  div.dataset.square=square;
+
+  if(selected===square)
+   div.classList.add("selected-square");
+
+  const possible=legalMoves.find(m=>m.to===square);
+
+  if(possible){
+   div.classList.add("possible");
+   if(piece)div.classList.add("capture");
+  }
+
+  if(piece){
+   const span=document.createElement("span");
+   span.className="piece "+
+    (piece.color==="w"?"white-piece":"black-piece");
+
+   span.textContent=symbols[piece.color+piece.type];
+   div.appendChild(span);
+  }
+
+  div.onclick=()=>selectSquare(square);
+  fragment.appendChild(div);
+ }
+
+ board.appendChild(fragment);
+}
+
+function animateMove(move,piece){
+ const board=document.getElementById("board");
+ const target=board.querySelector(
+  '[data-square="'+move.to+'"]'
+ );
+
+ if(!target)return;
+
+ const from=squarePosition(move.from);
+ const to=squarePosition(move.to);
+
+ const clone=document.createElement("div");
+
+ clone.className="slide-piece "+
+  (piece.color==="w"?"white-piece":"black-piece");
+
+ clone.textContent=symbols[piece.color+piece.type];
+ clone.style.left=(from.x*12.5)+"%";
+ clone.style.top=(from.y*12.5)+"%";
+
+ board.appendChild(clone);
+ target.classList.add("animating");
+
+ requestAnimationFrame(()=>{
+  requestAnimationFrame(()=>{
+   clone.style.transform=
+    "translate("+
+    ((to.x-from.x)*100)+"%, "+
+    ((to.y-from.y)*100)+"%)";
+  });
+ });
+
+ clone.addEventListener("transitionend",()=>{
+  clone.remove();
+  target.classList.remove("animating");
+ },{once:true});
+
+ setTimeout(()=>{
+  clone.remove();
+  target.classList.remove("animating");
+ },450);
+}
+
+function selectSquare(square){
+ if(busy || game.game_over())return;
+
+ if(mode==="computer" && game.turn()!==playerColor)
+  return;
+
+ const piece=game.get(square);
+
+ if(selected){
+  const move=legalMoves.find(m=>m.to===square);
+
+  if(move){
+   let promotion="q";
+
+   if(move.flags.includes("p")){
+    let answer=prompt(
+     "Promotion: q=Queen, r=Rook, b=Bishop, n=Knight",
+     "q"
+    );
+
+    answer=(answer||"q").toLowerCase();
+    promotion=["q","r","b","n"].includes(answer)?answer:"q";
+   }
+
+   const movingPiece=game.get(selected);
+
+   const result=game.move({
+    from:selected,
+    to:square,
+    promotion:promotion
+   });
+
+   if(result){
+    busy=true;
+    selected=null;
+    legalMoves=[];
+    lastMove=result;
+
+    renderBoard();
+    animateMove(result,movingPiece);
+    updateStatus();
+
+    setTimeout(()=>{
+     busy=false;
+
+     if(mode==="computer" && !game.game_over()){
+      computerMove();
+     }
+    },320);
+
+    return;
+   }
+  }
+ }
+
+ if(piece && piece.color===game.turn()){
+  selected=square;
+  legalMoves=game.moves({
+   square:square,
+   verbose:true
+  });
+ }else{
+  selected=null;
+  legalMoves=[];
+ }
+
+ renderBoard();
+}
+
+// Position evaluation for computer
+
+function evaluate(){
+ let score=0;
+ const board=game.board();
+
+ for(let r=0;r<8;r++){
+  for(let c=0;c<8;c++){
+   const p=board[r][c];
+   if(!p)continue;
+
+   let value=pieceValue[p.type];
+
+   if(p.type==="p"){
+    value+=(p.color==="w"?(6-r):(r-1))*8;
+   }
+
+   if(p.type==="n" || p.type==="b"){
+    value+=(3.5-Math.abs(3.5-c))*8;
+    value+=(3.5-Math.abs(3.5-r))*8;
+   }
+
+   score+=p.color==="w"?value:-value;
+  }
+ }
+
+ return game.turn()==="w"?score:-score;
+}
+
+function minimax(depth,alpha,beta){
+ if(depth===0 || game.game_over())
+  return evaluate();
+
+ const moves=game.moves({verbose:true});
+
+ if(!moves.length)return evaluate();
+
+ let best=-Infinity;
+
+ for(const m of moves){
+  game.move({
+   from:m.from,to:m.to,promotion:"q"
+  });
+
+  const score=-minimax(depth-1,-beta,-alpha);
+  game.undo();
+
+  best=Math.max(best,score);
+  alpha=Math.max(alpha,score);
+
+  if(alpha>=beta)break;
+ }
+
+ return best;
+}
+
+function computerMove(){
+ if(game.game_over() || mode!=="computer")return;
+
+ const moves=game.moves({verbose:true});
+ if(!moves.length)return;
+
+ let chosen;
+
+ if(difficulty===1){
+  chosen=moves[Math.floor(Math.random()*moves.length)];
+ }
+ else if(difficulty===2){
+  const scored=moves.map(m=>{
+   let score=0;
+
+   if(m.captured)score+=pieceValue[m.captured];
+
+   if(m.san.includes("+"))score+=50;
+   if(m.san.includes("#"))score+=100000;
+
+   return {m,score};
+  });
+
+  scored.sort((a,b)=>b.score-a.score);
+
+  const top=scored.slice(0,Math.min(3,scored.length));
+  chosen=top[Math.floor(Math.random()*top.length)].m;
+ }
+ else{
+  let best=-Infinity;
+  const ordered=moves.slice().sort((a,b)=>
+   (b.captured?pieceValue[b.captured]:0)-
+   (a.captured?pieceValue[a.captured]:0)
+  );
+
+  for(const m of ordered){
+   game.move({
+    from:m.from,to:m.to,promotion:"q"
+   });
+
+   const score=-minimax(2,-Infinity,Infinity);
+   game.undo();
+
+   if(score>best){
+    best=score;
+    chosen=m;
+   }
+  }
+ }
+
+ if(!chosen)return;
+
+ const piece=game.get(chosen.from);
+
+ const result=game.move({
+  from:chosen.from,
+  to:chosen.to,
+  promotion:"q"
+ });
+
+ if(result){
+  lastMove=result;
+  renderBoard();
+  animateMove(result,piece);
+  updateStatus();
+ }
+}
+
+function updateStatus(){
+ const status=document.getElementById("status");
+
+ if(game.in_checkmate()){
+  status.textContent="♛ CHECKMATE! "+
+   (game.turn()==="w"?"BLACK":"WHITE")+" WINS!";
+ }
+ else if(game.in_draw()){
+  status.textContent="GAME DRAW!";
+ }
+ else if(game.in_check()){
+  status.textContent=
+   (game.turn()==="w"?"WHITE":"BLACK")+" IS IN CHECK!";
+ }
+ else{
+  status.textContent=
+   (game.turn()==="w"?"WHITE":"BLACK")+" TO MOVE";
+ }
+
+ const history=game.history();
+
+ document.getElementById("history").textContent=
+  history.length?
+  history.map((m,i)=>
+   (i%2===0?Math.floor(i/2)+1+". ":"")+m
+  ).join("  "):
+  "Move history will appear here.";
+}
+
+</script>
+  
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js");
+  });
+}
+</script>
+
+</body>
+</html>
